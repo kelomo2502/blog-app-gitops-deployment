@@ -66,9 +66,8 @@ LABEL org.opencontainers.image.maintainer="kelvinoye@gmail.com"
 LABEL org.opencontainers.image.description="Nginx container to serve blog app"
 
 # Run as non-root user (security)
-# Create a new user and switch to it
+# Create a new user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-USER appuser
 
 # Set working directory
 WORKDIR /usr/share/nginx/html
@@ -79,6 +78,9 @@ COPY --from=builder /app/dist/ ./
 # Copy entrypoint and give permissions
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+
+# Now switch to non-root user
+USER appuser
 
 # Add a health check (simple HTTP check)
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
