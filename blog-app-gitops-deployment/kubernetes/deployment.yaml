@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vite-blog-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vite-blog-app
+  template:
+    metadata:
+      labels:
+        app: vite-blog-app
+    spec:
+      containers:
+      - name: vite-blog-app
+        image: kelomo2502/vite-blog-app:v3
+        ports:
+          - containerPort: 80
+        env:
+          - name: VITE_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: firebase-secrets
+                key: VITE_API_KEY
+          - name: VITE_AUTH_DOMAIN
+            valueFrom:
+              secretKeyRef:
+                name: firebase-secrets
+                key: VITE_AUTH_DOMAIN
+          - name: VITE_PROJECT_ID
+            valueFrom:
+              secretKeyRef:
+                name: firebase-secrets
+                key: VITE_PROJECT_ID
+          - name: VITE_STORAGE_BUCKET
+            valueFrom:
+              secretKeyRef:
+                name: firebase-secrets
+                key: VITE_STORAGE_BUCKET
+          - name: VITE_MESSAGING_SENDER_ID
+            valueFrom:
+              secretKeyRef:
+                name: firebase-secrets
+                key: VITE_MESSAGING_SENDER_ID
+          - name: VITE_APP_ID
+            valueFrom:
+              secretKeyRef:
+                name: firebase-secrets
+                key: VITE_APP_ID

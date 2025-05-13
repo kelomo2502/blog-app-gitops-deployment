@@ -1,0 +1,37 @@
+# Node.js dependencies
+node_modules
+npm-debug.log
+yarn.lock
+container.sh
+# Build artifacts
+dist
+build
+
+# Environment files (security reasons)
+.env.local
+.env.development
+.env.production
+.env
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# Docker files
+Dockerfile
+.dockerignore
+docker-compose.yaml
+
+# Editor and system files
+.vscode
+.idea
+.DS_Store
+*.swp
+*.swo

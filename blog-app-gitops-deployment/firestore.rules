@@ -1,0 +1,28 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Allow everyone to read posts
+    match /posts/{postId} {
+      allow read;
+
+      // Only signed-in users can create posts
+      allow create: if request.auth != null;
+
+      // Only post owners can edit or delete their posts
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    
+    // Allow signed-in users to add comments, but everyone can read comments
+    match /comments/{commentId} {
+      allow read;
+      allow create: if request.auth != null;
+    }
+
+    // Allow users to read and update only their own profile
+    match /users/{userId} {
+      allow read, update: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}

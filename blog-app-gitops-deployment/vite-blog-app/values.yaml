@@ -1,0 +1,95 @@
+## Updated values.yaml
+
+replicaCount: 1
+
+image:
+  repository: kelomo2502/vite-blog-app
+  pullPolicy: IfNotPresent
+  tag: "v3"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: ""
+  annotations: {}
+  hosts:
+    - host: blog-app.com
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+resources: {}
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 80
+
+volumes: []
+volumeMounts: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+env:
+  - name: VITE_API_KEY
+    valueFrom:
+      secretKeyRef:
+        name: firebase-secrets
+        key: VITE_API_KEY
+  - name: VITE_AUTH_DOMAIN
+    valueFrom:
+      secretKeyRef:
+        name: firebase-secrets
+        key: VITE_AUTH_DOMAIN
+  - name: VITE_PROJECT_ID
+    valueFrom:
+      secretKeyRef:
+        name: firebase-secrets
+        key: VITE_PROJECT_ID
+  - name: VITE_STORAGE_BUCKET
+    valueFrom:
+      secretKeyRef:
+        name: firebase-secrets
+        key: VITE_STORAGE_BUCKET
+  - name: VITE_MESSAGING_SENDER_ID
+    valueFrom:
+      secretKeyRef:
+        name: firebase-secrets
+        key: VITE_MESSAGING_SENDER_ID
+  - name: VITE_APP_ID
+    valueFrom:
+      secretKeyRef:
+        name: firebase-secrets
+        key: VITE_APP_ID

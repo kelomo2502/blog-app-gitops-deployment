@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "vite-blog-app.fullname" . }}-test-connection"
+  labels:
+    {{- include "vite-blog-app.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "vite-blog-app.fullname" . }}:{{ .Values.service.port }}']
+  restartPolicy: Never
