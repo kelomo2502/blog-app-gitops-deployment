@@ -26,8 +26,9 @@ WORKDIR /usr/share/nginx/html
 COPY --from=builder /app/dist/ /usr/share/nginx/html/
 
 # Copy custom entrypoint script
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# COPY entrypoint.sh /entrypoint.sh
+# RUN chmod +x /entrypoint.sh
 
-# Set entrypoint
-ENTRYPOINT ["/entrypoint.sh"]
+# # Set entrypoint
+# ENTRYPOINT ["/entrypoint.sh"]
+CMD ["nginx", "-g", "daemon off;"]
