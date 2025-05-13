@@ -19,3 +19,10 @@ chmod 644 /usr/share/nginx/html/env-config.js
 
 # Start Nginx
 exec nginx -g 'daemon off;'
+
+docker run \
+  -d \
+  --env-file .env \
+  --health-cmd="wget -q --spider 127.0.0.1:80 || exit 1" \
+  --health-interval=30s \
+  blog-app:v1
