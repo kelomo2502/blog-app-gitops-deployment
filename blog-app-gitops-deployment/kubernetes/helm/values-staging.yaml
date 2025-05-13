@@ -1,0 +1,23 @@
+global:
+  environment: staging
+
+image:
+  tag: staging-latest
+
+replicaCount: 2
+autoscaling:
+  enabled: true
+
+ingress:
+  enabled: true
+  className: "alb"
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/target-type: ip
+  hosts:
+    - host: staging.blog.gbenga.online
+      paths: ["/"]
+
+firebase:
+  apiKey: "STAGING_API_KEY"
+  authDomain: "staging-project.firebaseapp.com"
