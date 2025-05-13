@@ -26,41 +26,66 @@ Here’s a production-ready `Dockerfile` for React + Firebase blog app, followin
 - ✅ **Security Measures** (Vulnerability scanning, linter recommendation)
 - ✅ **Metadata Labels** (Adds useful info about the image)
 
+**Note** Running as a non-root user gives a better level of security but also comes with an additional level of permission complexities. So we would try and factor all of that into our Dockerfile
+
 ### Dockerfile for React + Firebase Blog App
 
 ```dockerfile
-# Use a lightweight Node.js image for building
+# ----- builder stage -----
 FROM node:20-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Copy package.json and lock files first (for better caching)
-COPY package.json package-lock.json ./
+# Install dependencies
+COPY package*.json ./
+RUN npm install
 
-# Install dependencies (including devDependencies for building)
-RUN npm ci
-
-# Copy the rest of the app
+# Copy source code and build
 COPY . .
-
-# Build the project
 RUN npm run build
 
-# Serve stage with Nginx
+
+
 FROM nginx:alpine
+
+# Metadata for final image
+LABEL org.opencontainers.image.source="https://github.com/kelomo2502/blog-app-gitops-deployment"
+LABEL org.opencontainers.image.maintainer="kelvinoye@gmail.com"
+LABEL org.opencontainers.image.description="Nginx container to serve blog app"
+
+# Add non-root user and group
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# Create necessary dirs and assign permissions to non-root user
+RUN mkdir -p /var/cache/nginx /var/run && \
+    chown -R appuser:appgroup /usr/share/nginx /var/cache/nginx /var/run
+
+# Copy custom nginx configuration file to replace default config
+COPY nginx.conf /etc/nginx/nginx.conf
 
 # Set working directory
 WORKDIR /usr/share/nginx/html
 
-# Copy build files from builder stage
-COPY --from=builder /app/dist/ /usr/share/nginx/html/
+# Copy build artifacts from the builder stage
+COPY --from=builder /app/dist/ ./
 
-# Copy custom entrypoint script
+# Copy and set permissions for entrypoint
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Set entrypoint
+# Change ownership of nginx html directory (if not done earlier)
+RUN chown -R appuser:appgroup /usr/share/nginx/html
+
+RUN mkdir -p /run && chown appuser:appgroup /run
+
+# Switch to non-root user
+USER appuser
+
+# Health check to verify container is serving
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --spider http://localhost || exit 1
+
+# Entrypoint
 ENTRYPOINT ["/entrypoint.sh"]
 ```
 
