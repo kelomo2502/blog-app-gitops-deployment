@@ -1,6 +1,17 @@
-# VITE-BLOG-APP
+# blog-app-gitops-deploymnt 
+This project aims to show how a blog app developed with React Vite frontend and a Firebase backend can be deployed to kubernetes using CI CD pipelines such as `github-actions`  and `jenkins` can be deployed in conjuction with kubernetes tools like `helm charts`and `kustomize`. We would be deploying locally to `minikube` cluster and also to production using `aws eks`. We would tie all this together into gitops practice using git as our single source of truth. All of this will happen in a declarative manner in order to make sure that our current application state always matches the application desired state.
 
-## Setting up the Docker Image
+We shall divide the implementation of this project into the following phases:
+1. Setting up Docker image
+2. Setting up minikube environment
+3. Setting up helm chart
+4. Setting up kustomize
+5. Deploying blog-app to minikube using helm charts
+6. Deploying blog-app to minikube using kustomize base and overlays
+7. Seeting up argocd
+8. Implementing gitops using argocd with git as our single source of truth
+
+## 1.  Setting up the Docker Image
 
 Here’s a production-ready `Dockerfile` for React + Firebase blog app, following best practices for security, efficiency, and maintainability.
 
