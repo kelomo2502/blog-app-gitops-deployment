@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blog-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blog-app
+  template:
+    metadata:
+      labels:
+        app: blog-app
+    spec:
+      containers:
+      - name: blog-app
+        image: kelomo2502/kelomo2502/blog-app-gitops:v1
+        ports:
+        - containerPort: 80
+        envFrom:
+        - configMapRef:
+            name: blog-app-config
+        - secretRef:
+            name: blog-app-secrets
