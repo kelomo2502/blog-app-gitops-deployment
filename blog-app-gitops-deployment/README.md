@@ -83,10 +83,12 @@ USER appuser
 
 # Health check to verify container is serving
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --spider http://localhost || exit 1
+  CMD wget --no-verbose --spider http://127.0.0.1 || exit 1
 
 # Entrypoint
 ENTRYPOINT ["/entrypoint.sh"]
+
+
 ```
 
 ### `.dockerignore` (Prevent unnecessary files from being copied)
@@ -136,428 +138,192 @@ docker-compose.yaml
 ## 🚀 How to Use
 
 ```sh
-docker build -t vite-blog-app:1.0 .
-docker tag vite-blog-app:1.0 myusername/vite-blog-app:1.0
-docker push myusername/vite-blog-app:1.0
+docker build -t your-docker-username/blog-app-gitop:v1 .
+docker login
+docker push your-docker-username/blog-app-gitop:v1
 ```
 
-## Setup Docker Environment in Minikube
+## Step 1: Setup Docker Environment in Minikube
+**I am assuming that:**
+- minikube is already installed on your pc
+- kubectl already installed
+- minikube addons enable ingress
+- minikube addons enable metrics-server
 
 ```sh
 eval $(minikube docker-env)
 ```
+The above is only necessary if you want to build your docker image within minikube context so as to use it locally without having to pull from an image registry like dockerhub
 
-## Create Kubernetes Secrets for Sensitive Environment Variables
+## Step 2: Create Kubernetes Secrets for Sensitive Environment Variables
 
 To prevent exposing credentials in the image or config maps, use Kubernetes Secrets.
 
 Create a secret for Firebase environment variables:
-
-```sh
-kubectl create secret generic firebase-secrets \
-  --from-literal=VITE_API_KEY="xxxxxxxxxxxxxx" \
-  --from-literal=VITE_AUTH_DOMAIN="xxxxxxxxxxxxxxxxxx" \
-  --from-literal=VITE_PROJECT_ID="xxxxxxxxxxxxxxxxxxx" \
-  --from-literal=VITE_STORAGE_BUCKET="xxxxxxxxxxxxxxxxxx" \
-  --from-literal=VITE_MESSAGING_SENDER_ID="xxxxxxxxxxxxxx" \
-  --from-literal=VITE_APP_ID="xxxxxxxxxxxxxxxxxxxxxxxxxx"
-```
+`kubectl create secret generic blog-app-secrets --from-file .env`
 
 ### To Verify the Secret
 
 ```sh
 kubectl get secrets
-kubectl describe secret firebase-secrets
+kubectl describe secret blog-app-secrets
 ```
 
-## Create Kubernetes Deployment & Service
-
+## Step 3: Helm Chart Deployment (Local)
+ 1. Initialize Helm chart:
+```bash
+mkdir -p blog-app-gitops-deployment/kubernetes/helm/blog-app/templates
+cd gitops-deployment/kubernetes/helm/blog-app
+```
+ 2. Create Chart.yaml
+```yaml
+apiVersion: v2
+name: blog-app
+description: A React Vite blog application with Firebase backend
+version: 0.1.0
+appVersion: "1.0.0"
+```
+3. Create values.yaml:
+```yaml
+replicaCount: 1
+image:
+  repository: your-docker-username/blog-app
+  pullPolicy: IfNotPresent
+  tag: "latest"
+service:
+  type: NodePort
+  port: 80
+env:
+  configMap:
+    NODE_ENV: "development"
+  secrets:
+    existingSecret: "blog-app-secrets"
+```
+4. Create templates/deployment.yaml:
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: react-blog-app
+  name: {{ include "blog-app.fullname" . }}
+  labels:
+    {{- include "blog-app.labels" . | nindent 4 }}
 spec:
-  replicas: 2
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: react-blog-app
+      {{- include "blog-app.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: react-blog-app
+        {{- include "blog-app.selectorLabels" . | nindent 8 }}
     spec:
       containers:
-        - name: react-blog-app
-          image: kelomo2502/vite-blog-app:v1
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - containerPort: 80
-          env:
-            - name: VITE_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: firebase-secrets
-                  key: VITE_API_KEY
-            - name: VITE_AUTH_DOMAIN
-              valueFrom:
-                secretKeyRef:
-                  name: firebase-secrets
-                  key: VITE_AUTH_DOMAIN
-            - name: VITE_PROJECT_ID
-              valueFrom:
-                secretKeyRef:
-                  name: firebase-secrets
-                  key: VITE_PROJECT_ID
-            - name: VITE_STORAGE_BUCKET
-              valueFrom:
-                secretKeyRef:
-                  name: firebase-secrets
-                  key: VITE_STORAGE_BUCKET
-            - name: VITE_MESSAGING_SENDER_ID
-              valueFrom:
-                secretKeyRef:
-                  name: firebase-secrets
-                  key: VITE_MESSAGING_SENDER_ID
-            - name: VITE_APP_ID
-              valueFrom:
-                secretKeyRef:
-                  name: firebase-secrets
-                  key: VITE_APP_ID
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "blog-app.fullname" . }}-config
+            - secretRef:
+                name: {{ .Values.env.secrets.existingSecret }}
+```
+5. Create templates/configmap.yaml:
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "blog-app.fullname" . }}-config
+data:
+  {{- range $key, $value := .Values.env.configMap }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+```
+6. Create templates/_helpers.tpl:
+```yaml
+{{- define "blog-app.fullname" -}}
+{{- printf "%s-%s" .Release.Name .Chart.Name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "blog-app.labels" -}}
+app.kubernetes.io/name: {{ .Chart.Name }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{- define "blog-app.selectorLabels" -}}
+app.kubernetes.io/name: {{ .Chart.Name }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+```
+7. Deploy to Minikube:
+`helm install blog-app-local ./blog-app-gitops-deployment/kubernetes/helm/blog-app`
+
+You can see the pods by running:
+`kubectl get pods` 
+
+## Step 4: Kustomize Deployment (Local)
+1. Create base files in kubernetes/kustomize/base/:
+Inside the base folder create:
+- deployment.yaml:
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blog-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blog-app
+  template:
+    metadata:
+      labels:
+        app: blog-app
+    spec:
+      containers:
+      - name: blog-app
+        image: your-docker-username/blog-app:latest
+        ports:
+        - containerPort: 80
+        envFrom:
+        - configMapRef:
+            name: blog-app-config
+        - secretRef:
+            name: blog-app-secrets
 ```
 
-### Apply Deployment
-
-```sh
-kubectl apply -f deployment.yaml
-```
-
-### Check Deployments and Service
-
-```sh
-kubectl get deployments
-kubectl get services
-```
-
-## Access the App via Ngrok Tunnel
-
-1. **Verify Minikube's IP is Correct**
-
-   ```sh
-   minikube ip
-   ```
-
-   It should return `192.168.49.2` (the IP you're forwarding via Ngrok). If it's different, update the Ngrok tunnel.
-
-2. **Ensure Minikube Can Access the NodePort**
-
-   ```sh
-   curl http://192.168.49.2:32435
-   ```
-
-   If it returns your app’s HTML, Minikube is working fine.
-
-3. **Make Sure Ngrok is Properly Forwarding Requests**
-
-   ```sh
-   ngrok http 192.168.49.2:32435
-   ```
-
-4. **Access the URL generated from the Ngrok forwarding**
-
-## Applying Best Practice: Using Ingress Service
-
-### Create `service.yaml`
-
+2. Create service.yaml:
 ```yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: vite-blog-service
+  name: blog-app
 spec:
-  type: ClusterIP # Change from NodePort to ClusterIP
-  selector:
-    app: vite-blog-app
+  type: NodePort
   ports:
-    - protocol: TCP
-      port: 80 # Internal service port
-      targetPort: 80 # Container's port
-```
-
-### Option 1: Use Ingress Without a Domain (Access via IP)
-
-Create `ingress.yaml`:
-
-```yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: vite-blog-ingress
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
-spec:
-  rules:
-    - host: blog-app.com # This can be anything, even a fake domain
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: vite-blog-service
-                port:
-                  number: 80
-```
-
-### Deploy Ingress Controller
-
-```sh
-minikube addons enable ingress
-kubectl get pods -n kube-system | grep ingress
-kubectl apply -f ingress.yaml
-```
-
-### Test Setup
-
-```sh
-minikube ip
-```
-
-Edit `/etc/hosts`:
-
-```sh
-sudo nano /etc/hosts
-```
-
-Add:
-
-192.168.49.2 blog-app.com
-
-Now, access your app at:
-
-[http://blog-app.com](http://blog-app.com)
-
-## Deploying via helm
-
-- Run ```bash
-- helm create vite-blog-app
-cd vite-blog-app
-
-```
-
-## Edit the Values.yaml file
-```yaml
-## Updated values.yaml
-
-replicaCount: 4
-
-image:
-  repository: kelomo2502/vite-blog-app
-  pullPolicy: IfNotPresent
-  tag: "v3"
-
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
-
-serviceAccount:
-  create: true
-  automount: true
-  annotations: {}
-  name: ""
-
-podAnnotations: {}
-podLabels: {}
-
-podSecurityContext: {}
-securityContext: {}
-
-service:
-  type: ClusterIP
-  port: 80
-
-ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-  hosts:
-    - host: blog-app.com
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
-  tls: []
-
-resources: {}
-
-livenessProbe:
-  httpGet:
-    path: /
-    port: http
-readinessProbe:
-  httpGet:
-    path: /
-    port: http
-
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-
-volumes: []
-volumeMounts: []
-
-nodeSelector: {}
-tolerations: []
-affinity: {}
-
-env:
-  - name: VITE_API_KEY
-    valueFrom:
-      secretKeyRef:
-        name: firebase-secrets
-        key: VITE_API_KEY
-  - name: VITE_AUTH_DOMAIN
-    valueFrom:
-      secretKeyRef:
-        name: firebase-secrets
-        key: VITE_AUTH_DOMAIN
-  - name: VITE_PROJECT_ID
-    valueFrom:
-      secretKeyRef:
-        name: firebase-secrets
-        key: VITE_PROJECT_ID
-  - name: VITE_STORAGE_BUCKET
-    valueFrom:
-      secretKeyRef:
-        name: firebase-secrets
-        key: VITE_STORAGE_BUCKET
-  - name: VITE_MESSAGING_SENDER_ID
-    valueFrom:
-      secretKeyRef:
-        name: firebase-secrets
-        key: VITE_MESSAGING_SENDER_ID
-  - name: VITE_APP_ID
-    valueFrom:
-      secretKeyRef:
-        name: firebase-secrets
-        key: VITE_APP_ID
-
-```
-
-## Modify the deployments.yaml
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: {{ include "vite-blog-app.fullname" . }}
-  labels:
-    {{- include "vite-blog-app.labels" . | nindent 4 }}
-spec:
-  {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
-  {{- end }}
+  - port: 80
+    targetPort: 80
   selector:
-    matchLabels:
-      {{- include "vite-blog-app.selectorLabels" . | nindent 6 }}
-  template:
-    metadata:
-      {{- with .Values.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      labels:
-        {{- include "vite-blog-app.labels" . | nindent 8 }}
-        {{- with .Values.podLabels }}
-        {{- toYaml . | nindent 8 }}
-        {{- end }}
-    spec:
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      serviceAccountName: {{ include "vite-blog-app.serviceAccountName" . }}
-      {{- with .Values.podSecurityContext }}
-      securityContext:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      containers:
-        - name: {{ .Chart.Name }}
-          {{- with .Values.securityContext }}
-          securityContext:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: {{ .Values.service.port }}
-              protocol: TCP
-          env:
-            - name: REACT_APP_API_BASE_URL
-              value: "{{ .Values.env.apiBaseUrl }}"
-          {{- with .Values.livenessProbe }}
-          livenessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- with .Values.readinessProbe }}
-          readinessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- with .Values.resources }}
-          resources:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- with .Values.volumeMounts }}
-          volumeMounts:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-      {{- with .Values.volumes }}
-      volumes:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-
+    app: blog-app
 ```
-
-## Lint the Helm Chart
-
-`helm lint <chart-directory>`
-
-## Deploy the chart by running
-
-`helm install vite-blog-app ./vite-blog-app`
-👉 Purpose: This command installs a Helm chart named vite-blog-app from the ./vite-blog-app directory for the first time.
-👉 Function:
-
-Deploys the application using the values from values.yaml and the templates in the vite-blog-app chart.
-
-If the release vite-blog-app already exists, it fails unless you add the --replace flag.
-
-Equivalent to kubectl apply -f for Kubernetes manifests.
-
-## To upgrade the chart, run
-
-`helm upgrade --install vite-blog-app ./vite-blog-app`
-
-👉 Purpose: This command is more flexible and is used to either install or upgrade the Helm release.
-👉 Function:
-
-If vite-blog-app is not already installed, it installs it just like helm install.
-
-If vite-blog-app already exists, it updates the deployment with any changes in the Helm chart.
-
-This is useful when making changes to values.yaml or template files, ensuring the app is always running the latest configuration.
-
-✅ Best Practice: Use helm upgrade --install instead of helm install, since it works for both new and existing deployments! 🚀
+3. Create configmap.yaml:
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: blog-app-config
+data:
+  NODE_ENV: "development"
+```
+4. Create kustomization.yaml
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- deployment.yaml
+- service.yaml
+- configmap.yaml
+```
