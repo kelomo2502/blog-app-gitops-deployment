@@ -1,0 +1,13 @@
+replicaCount: 1
+image:
+  repository: kelomo2502/blog-app-gitops
+  pullPolicy: IfNotPresent
+  tag: "v1"
+service:
+  type: NodePort
+  port: 80
+env:
+  configMap:
+    NODE_ENV: "development"
+  secrets:
+    existingSecret: "blog-app-secrets"
