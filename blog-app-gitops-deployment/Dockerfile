@@ -50,7 +50,9 @@ USER appuser
 
 # Health check to verify container is serving
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --spider http://127.0.0.1 || exit 1
+  CMD wget --no-verbose --spider http://127.0.0.1:8080 || exit 1
+
+EXPOSE 8080
 
 # Entrypoint
 ENTRYPOINT ["/entrypoint.sh"]

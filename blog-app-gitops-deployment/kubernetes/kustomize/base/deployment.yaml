@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: blog-app
-        image: kelomo2502/kelomo2502/blog-app-gitops:v1
+        image: kelomo2502/blog-app-gitops:v1
         ports:
         - containerPort: 80
         envFrom:

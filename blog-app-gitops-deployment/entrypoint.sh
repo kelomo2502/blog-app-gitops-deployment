@@ -23,6 +23,6 @@ exec nginx -g 'daemon off;'
 docker run \
   -d \
   --env-file .env \
-  --health-cmd="wget -q --spider 127.0.0.1:80 || exit 1" \
+  --health-cmd="wget -q --spider 127.0.0.1:8080 || exit 1" \
   --health-interval=30s \
   blog-app:v1

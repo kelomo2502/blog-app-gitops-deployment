@@ -6,6 +6,9 @@ image:
 service:
   type: NodePort
   port: 80
+  targetPort: 8080
+ingress:
+  enabled: false  # explicitly disable ingress for local dev
 env:
   configMap:
     NODE_ENV: "development"

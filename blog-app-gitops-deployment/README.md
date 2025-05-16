@@ -160,7 +160,7 @@ The above is only necessary if you want to build your docker image within miniku
 To prevent exposing credentials in the image or config maps, use Kubernetes Secrets.
 
 Create a secret for Firebase environment variables:
-`kubectl create secret generic blog-app-secrets --from-file .env`
+`kubectl create secret generic blog-app-secrets --from-env-file=.env`
 
 ### To Verify the Secret
 
@@ -173,7 +173,7 @@ kubectl describe secret blog-app-secrets
  1. Initialize Helm chart:
 ```bash
 mkdir -p blog-app-gitops-deployment/kubernetes/helm/blog-app/templates
-cd gitops-deployment/kubernetes/helm/blog-app
+cd blog-app-gitops-deployment/kubernetes/helm/blog-app
 ```
  2. Create Chart.yaml
 ```yaml
@@ -327,3 +327,108 @@ resources:
 - service.yaml
 - configmap.yaml
 ```
+5. Create overlays/dev:
+- Create kustomization.yaml
+```yaml
+apiVersion: kustomize.config.k8s.io/v1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+patchesStrategicMerge:
+  - patch-deployment.yaml
+
+```
+- Create patch-deployment.yaml:
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blog-app
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+      - name: blog-app
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+```
+3. Deploy with Kustomize to kubernetes:
+`kubectl apply -k blog-app-gitops-deployment/kubernetes/kustomize/overlays/dev`
+
+*We have successfully deployed our app to local kubernetes cluster (minikube) via both helm-charts and kustomize*
+
+## Phase 2: AWS EKS Deployment
+Step 1: Set up AWS EKS with Cost Optimization
+
+Since you have a $2 budget, we'll:
+
+  1. Use the smallest possible node type (t3.small)
+
+  2. Use a single node cluster
+
+  3. Use Spot Instances where possible
+
+  4. Clean up immediately after practice
+*I am assumming we already have ekstcl installed on our local machine*
+### step 1. Managed EKS: 
+`eksctl create cluster --name blog-app-cluster --nodegroup-name standard-workers --node-type t3.small --nodes 1 --nodes-min 1 --nodes-max 1 --region us-east-1 --managed --spot`
+
+### Step 2. Let's point our kubectl to the aws eks blog-app-cluster
+`aws eks --region us-east-1 update-kubeconfig --name blog-app-cluster`
+
+### step 3. We would create namespace for our production named prod
+`kubectl create namespace prod`
+
+### step 4.Let's create secrets in our prod namespace
+`kubectl create secret generic blog-app-secrets-prod --from-env-file=.env -n prod`
+### step 5. Helm Deployment to EKS
+We already pushed our image to dockerhub so we can always pull from there:
+Let's create a values.prod.yaml 
+```yaml
+replicaCount: 2
+image:
+  repository: kelomo2502/blog-app-gitops
+  pullPolicy: Always
+  tag: "v1"
+service:
+  type: LoadBalancer
+  port: 80
+env:
+  configMap:
+    NODE_ENV: "production"
+  secrets:
+    existingSecret: "blog-app-secrets-prod"
+```
+*We would be using a loadbalancer because it less Works well for exposing apps to the internet, it's supported by all major cloud providers (EKS, GKE, AKS) and SSL termination possible. However, Every LoadBalancer costs money.Scaling many services this way is inefficient and expensive.No routing flexibility. In a proper production environment, it will be best to use an Ingeress Controller* 
+
+### Step 6. Install with helm
+`helm install blog-app-prod ./blog-app-gitops-deployment/kubernetes/helm/blog-app -f values-prod.yaml`
+- Config kubectl to use eks cluster
+`aws eks --region us-east-1 update-kubeconfig --name blog-app-cluster`
+
+- Create secrets for our production namespace
+```bash
+kubectl create secret generic blog-app-secrets-prod \
+  --from-env-file=.env \
+  -n prod
+
+```
+- Deploy via helm to eks cluster
+```bash
+helm upgrade --install blog-app-prod kubernetes/helm/blog-app \
+  --namespace prod \
+  --create-namespace \
+  -f kubernetes/helm/blog-app/values.prod.yaml
+
+```
+
+## Deployment Setup Using Kustomize
+

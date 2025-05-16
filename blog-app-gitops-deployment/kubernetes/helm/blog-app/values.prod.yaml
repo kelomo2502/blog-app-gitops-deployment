@@ -1,0 +1,28 @@
+replicaCount: 2
+
+image:
+  repository: kelomo2502/blog-app-gitops
+  pullPolicy: Always
+  tag: "v1"
+
+service:
+  type: ClusterIP
+  port: 80         # External port your service exposes (on the ClusterIP)
+  targetPort: 8080 # The port inside the container (nginx listening port)
+
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  host: gbenga.online
+  tls:
+    - secretName: blog-app-tls-secret
+      hosts:
+        - gbenga.online
+
+env:
+  configMap:
+    NODE_ENV: "production"
+  secrets:
+    existingSecret: "blog-app-secrets-prod"
