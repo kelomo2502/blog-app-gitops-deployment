@@ -3,7 +3,7 @@ replicaCount: 2
 image:
   repository: kelomo2502/blog-app-gitops
   pullPolicy: Always
-  tag: "v1"
+  tag: "v2"
 
 service:
   type: ClusterIP
