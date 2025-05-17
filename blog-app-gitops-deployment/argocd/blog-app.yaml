@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: 'https://github.com/kelomo2502/blog-app-gitops-deployment.git'
     targetRevision: main
-    path: kubernetes/helm/blog-app
+    path: kubernetes/helm/blog_app
     helm:
       valueFiles:
         - values.prod.yaml
