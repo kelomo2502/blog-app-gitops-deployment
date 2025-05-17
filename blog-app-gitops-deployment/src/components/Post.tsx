@@ -31,19 +31,19 @@ const Post = ({ id, content, author, userId, photoURL, timestamp }: PostProps) =
   };
 
   return (
-    <div className="bg-white dark:bg-green-800 border border-green-300 dark:border-green-700 md:p-5 rounded-xl shadow-lg mb-6 max-w-2xl mx-auto">
+    <div className="bg-white dark:bg-blue-800 border border-blue-300 dark:border-blue-700 md:p-5 rounded-xl shadow-lg mb-6 max-w-2xl mx-auto">
       {/* ✅ Profile & Content */}
       <div className="flex gap-4 items-start">
         {/* Profile Image */}
         <img
           src={photoURL || import.meta.env.VITE_IMAGE_PLACEHOLDER}
           alt="User Profile"
-          className="w-12 h-12 rounded-full border border-green-400 dark:border-green-600"
+          className="w-12 h-12 rounded-full border border-blue-400 dark:border-blue-600"
         />
 
         <div className="flex-1">
           {/* Timestamp */}
-          <p className="text-xs text-green-500 dark:text-green-400">
+          <p className="text-xs text-blue-500 dark:text-blue-400">
             {new Date(timestamp?.seconds * 1000).toLocaleString()}
           </p>
 
@@ -52,13 +52,13 @@ const Post = ({ id, content, author, userId, photoURL, timestamp }: PostProps) =
             <textarea
               value={newContent}
               onChange={(e) => setNewContent(e.target.value)}
-              className="bg-green-100 dark:bg-green-700 text-green-900 dark:text-white border border-green-300 dark:border-green-600 p-2 w-full rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="bg-blue-100 dark:bg-blue-700 text-blue-900 dark:text-white border border-blue-300 dark:border-blue-600 p-2 w-full rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           ) : (
-            <p className="text-lg font-medium text-green-800 dark:text-green-200">{content}</p>
+            <p className="text-lg font-medium text-blue-800 dark:text-blue-200">{content}</p>
           )}
 
-          <p className="text-sm font-semibold text-green-500 dark:text-green-400 mt-2">By: {author}</p>
+          <p className="text-sm font-semibold text-blue-500 dark:text-blue-400 mt-2">By: {author}</p>
 
           {/* ✅ Owner Controls */}
           {isOwner && (
@@ -73,7 +73,7 @@ const Post = ({ id, content, author, userId, photoURL, timestamp }: PostProps) =
                   </button>
                   <button
                     onClick={() => setIsEditing(false)}
-                    className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-all"
+                    className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-all"
                   >
                     Cancel
                   </button>
@@ -100,7 +100,7 @@ const Post = ({ id, content, author, userId, photoURL, timestamp }: PostProps) =
       </div>
 
       {/* ✅ Comments Section */}
-      <div className="mt-5 bg-green-50 dark:bg-green-700 md:p-4 rounded-lg shadow-sm">
+      <div className="mt-5 bg-blue-50 dark:bg-blue-700 md:p-4 rounded-lg shadow-sm">
         <Comment postId={id} />
       </div>
     </div>

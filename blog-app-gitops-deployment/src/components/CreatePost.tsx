@@ -43,20 +43,20 @@ const CreatePost = () => {
   };
 
   return (
-    <div className="bg-green-100 p-4 rounded-lg shadow-md mb-4  ">
+    <div className="bg-blue-100 p-4 rounded-lg shadow-md mb-4  ">
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
         placeholder="What's on your mind?"
-        className="border p-3 w-full rounded-md text-green-950 text-[18px] focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+        className="border p-3 w-full rounded-md text-blue-950 text-[18px] focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
         maxLength={MAX_CHAR}
       />
-      <p className="text-sm text-green-500 mt-1">{content.length} / {MAX_CHAR}</p>
+      <p className="text-sm text-blue-500 mt-1">{content.length} / {MAX_CHAR}</p>
 
       <button
         onClick={handleAddPost}
         className={`w-full mt-2 py-2 rounded-lg text-white transition-all ${
-          loading ? "bg-green-600 cursor-not-allowed" : "bg-green-800 hover:bg-green-700"
+          loading ? "bg-blue-600 cursor-not-allowed" : "bg-blue-800 hover:bg-blue-700"
         }`}
         disabled={loading}
       >

@@ -39,7 +39,7 @@ const Signup = () => {
             placeholder="John Doe"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-md p-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-md p-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             required
           />
         </div>
@@ -52,7 +52,7 @@ const Signup = () => {
             placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-md p-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-md p-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             required
           />
         </div>
@@ -65,7 +65,7 @@ const Signup = () => {
             placeholder="********"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-md p-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            className="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-md p-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             required
           />
         </div>
@@ -73,7 +73,7 @@ const Signup = () => {
         {/* ✅ Sign Up Button */}
         <button
           type="submit"
-          className="w-full bg-green-500 text-white py-3 rounded-md font-medium text-lg hover:bg-green-500 transition-all"
+          className="w-full bg-blue-500 text-white py-3 rounded-md font-medium text-lg hover:bg-blue-500 transition-all"
         >
           Sign Up
         </button>
@@ -81,7 +81,7 @@ const Signup = () => {
         {/* ✅ Login Link */}
         <p className="text-gray-500 text-center mt-4 text-sm sm:text-base">
           Already have an account?{" "}
-          <Link to={"/login"} className="text-green-500 font-semibold hover:underline">
+          <Link to={"/login"} className="text-blue-500 font-semibold hover:underline">
             Log in
           </Link>
         </p>
