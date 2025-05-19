@@ -64,7 +64,7 @@ const Comment = ({ postId }: CommentProps) => {
 
   return (
     <div className="max-w-2xl mx-auto mt-6 px-4">
-      <div className="bg-white dark:bg-blue-800 shadow-md rounded-lg p-4">
+      <div className="bg-white dark:bg-slate-800 shadow-md rounded-lg p-4">
         {/* Comment Input Section */}
         {user && (
           <div className="flex flex-col sm:flex-row items-center gap-3">
@@ -73,12 +73,12 @@ const Comment = ({ postId }: CommentProps) => {
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="Write a comment..."
-              className="flex-1 w-full px-4 py-3 text-blue-900 dark:text-white bg-blue-100 dark:bg-blue-700 border border-blue-300 dark:border-blue-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              className="flex-1 w-full px-4 py-3 text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500 transition"
             />
             <button
               onClick={handleAddComment}
               className={`w-full sm:w-auto px-6 py-3 rounded-lg text-white font-medium transition-all ${
-                loading ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+                loading ? "bg-slate-400 cursor-not-allowed" : "bg-slate-600 hover:bg-slate-700"
               }`}
               disabled={loading}
             >
@@ -90,19 +90,19 @@ const Comment = ({ postId }: CommentProps) => {
         {/* Comments List */}
         <div className="mt-4 max-h-60 overflow-y-auto space-y-3 ">
           {comments.length === 0 ? (
-            <p className="text-blue-500 text-center">No comments yet. Be the first! 💬</p>
+            <p className="text-slate-500 text-center">No comments yet. Be the first! 💬</p>
           ) : (
             comments.map((c) => (
-              <div key={c.id} className="p-3 bg-blue-50 dark:bg-blue-700 rounded-lg shadow-sm">
+              <div key={c.id} className="p-3 bg-slate-50 dark:bg-slate-700 rounded-lg shadow-sm">
                 <p className="text-sm">
-                  <strong className="text-blue-600 dark:text-blue-400">{c.author}</strong> -{" "}
-                  <span className="text-blue-500 dark:text-blue-400">
+                  <strong className="text-slate-600 dark:text-slate-400">{c.author}</strong> -{" "}
+                  <span className="text-slate-500 dark:text-slate-400">
                     {c.timestamp?.seconds
                       ? formatDistanceToNow(new Date(c.timestamp.seconds * 1000), { addSuffix: true })
                       : "Just now"}
                   </span>
                 </p>
-                <p className="text-blue-800 dark:text-blue-200">{c.text}</p>
+                <p className="text-slate-800 dark:text-slate-200">{c.text}</p>
               </div>
             ))
           )}

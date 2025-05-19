@@ -28,7 +28,7 @@ const App = () => {
       <Toaster position="top-right" reverseOrder={false} />
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
         {/* ✅ Responsive Navigation Bar */}
-        <nav className="bg-blue-500 text-white shadow-lg text-[20px]">
+        <nav className="bg-slate-500 text-white shadow-lg text-[20px]">
           <div className="container mx-auto flex justify-between items-center px-6 py-4">
             <Link to="/" className="text-lg font-bold tracking-wide hover:underline">
               MyBlogApp
@@ -61,7 +61,7 @@ const App = () => {
                   <Link to="/login" className="hover:underline transition">Login</Link>
                   <Link
                     to="/signup"
-                    className="bg-blue-500 px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition-all"
+                    className="bg-slate-500 px-4 py-2 rounded-lg shadow-md hover:bg-slate-700 transition-all"
                   >
                     Signup
                   </Link>
@@ -72,7 +72,7 @@ const App = () => {
           
           {/* Mobile Menu */}
           {menuOpen && (
-            <div className="lg:hidden flex flex-col items-center bg-blue-500 text-white py-4 space-y-4">
+            <div className="lg:hidden flex flex-col items-center bg-slate-500 text-white py-4 space-y-4">
               <Link to="/" className="hover:underline transition" onClick={() => setMenuOpen(false)}>Home</Link>
               {user ? (
                 <>
@@ -90,7 +90,7 @@ const App = () => {
                   <Link to="/login" className="hover:underline transition" onClick={() => setMenuOpen(false)}>Login</Link>
                   <Link
                     to="/signup"
-                    className="bg-blue-500 px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition-all"
+                    className="bg-slate-500 px-4 py-2 rounded-lg shadow-md hover:bg-slate-700 transition-all"
                     onClick={() => setMenuOpen(false)}
                   >
                     Signup

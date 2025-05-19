@@ -1,7 +1,9 @@
-# blog-app-gitops-deploymnt 
+# blog-app-gitops-deploymnt
+
 This project aims to show how a blog app developed with React Vite frontend and a Firebase backend can be deployed to kubernetes using CI CD pipelines such as `github-actions`  and `jenkins` can be deployed in conjuction with kubernetes tools like `helm charts`and `kustomize`. We would be deploying locally to `minikube` cluster and also to production using `aws eks`. We would tie all this together into gitops practice using git as our single source of truth. All of this will happen in a declarative manner in order to make sure that our current application state always matches the application desired state.
 
 We shall divide the implementation of this project into the following phases:
+
 1. Setting up Docker image
 2. Setting up minikube environment
 3. Setting up helm chart
@@ -144,7 +146,9 @@ docker push your-docker-username/blog-app-gitop:v1
 ```
 
 ## Step 1: Setup Docker Environment in Minikube
+
 **I am assuming that:**
+
 - minikube is already installed on your pc
 - kubectl already installed
 - minikube addons enable ingress
@@ -153,6 +157,7 @@ docker push your-docker-username/blog-app-gitop:v1
 ```sh
 eval $(minikube docker-env)
 ```
+
 The above is only necessary if you want to build your docker image within minikube context so as to use it locally without having to pull from an image registry like dockerhub
 
 ## Step 2: Create Kubernetes Secrets for Sensitive Environment Variables
@@ -170,12 +175,16 @@ kubectl describe secret blog-app-secrets
 ```
 
 ## Step 3: Helm Chart Deployment (Local)
+
  1. Initialize Helm chart:
+
 ```bash
 mkdir -p blog-app-gitops-deployment/kubernetes/helm/blog-app/templates
 cd blog-app-gitops-deployment/kubernetes/helm/blog-app
 ```
+
  2. Create Chart.yaml
+
 ```yaml
 apiVersion: v2
 name: blog-app
@@ -183,7 +192,9 @@ description: A React Vite blog application with Firebase backend
 version: 0.1.0
 appVersion: "1.0.0"
 ```
+
 3. Create values.yaml:
+
 ```yaml
 replicaCount: 1
 image:
@@ -199,7 +210,9 @@ env:
   secrets:
     existingSecret: "blog-app-secrets"
 ```
+
 4. Create templates/deployment.yaml:
+
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -231,7 +244,9 @@ spec:
             - secretRef:
                 name: {{ .Values.env.secrets.existingSecret }}
 ```
+
 5. Create templates/configmap.yaml:
+
 ```yaml
 apiVersion: v1
 kind: ConfigMap
@@ -242,7 +257,9 @@ data:
   {{ $key }}: {{ $value | quote }}
   {{- end }}
 ```
+
 6. Create templates/_helpers.tpl:
+
 ```yaml
 {{- define "blog-app.fullname" -}}
 {{- printf "%s-%s" .Release.Name .Chart.Name | trunc 63 | trimSuffix "-" -}}
@@ -258,16 +275,20 @@ app.kubernetes.io/name: {{ .Chart.Name }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 ```
+
 7. Deploy to Minikube:
 `helm install blog-app-local ./blog-app-gitops-deployment/kubernetes/helm/blog-app`
 
 You can see the pods by running:
-`kubectl get pods` 
+`kubectl get pods`
 
 ## Step 4: Kustomize Deployment (Local)
+
 1. Create base files in kubernetes/kustomize/base/:
 Inside the base folder create:
+
 - deployment.yaml:
+
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -296,6 +317,7 @@ spec:
 ```
 
 2. Create service.yaml:
+
 ```yaml
 apiVersion: v1
 kind: Service
@@ -309,7 +331,9 @@ spec:
   selector:
     app: blog-app
 ```
+
 3. Create configmap.yaml:
+
 ```yaml
 apiVersion: v1
 kind: ConfigMap
@@ -318,7 +342,9 @@ metadata:
 data:
   NODE_ENV: "development"
 ```
+
 4. Create kustomization.yaml
+
 ```yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -327,8 +353,11 @@ resources:
 - service.yaml
 - configmap.yaml
 ```
+
 5. Create overlays/dev:
+
 - Create kustomization.yaml
+
 ```yaml
 apiVersion: kustomize.config.k8s.io/v1
 kind: Kustomization
@@ -340,7 +369,9 @@ patchesStrategicMerge:
   - patch-deployment.yaml
 
 ```
+
 - Create patch-deployment.yaml:
+
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -360,12 +391,14 @@ spec:
             cpu: "250m"
             memory: "256Mi"
 ```
+
 3. Deploy with Kustomize to kubernetes:
 `kubectl apply -k blog-app-gitops-deployment/kubernetes/kustomize/overlays/dev`
 
 *We have successfully deployed our app to local kubernetes cluster (minikube) via both helm-charts and kustomize*
 
 ## Phase 2: AWS EKS Deployment
+
 Step 1: Set up AWS EKS with Cost Optimization
 
 Since you have a $2 budget, we'll:
@@ -378,20 +411,28 @@ Since you have a $2 budget, we'll:
 
   4. Clean up immediately after practice
 *I am assumming we already have ekstcl installed on our local machine*
-### step 1. Managed EKS: 
+
+### step 1. Managed EKS
+
 `eksctl create cluster --name blog-app-cluster --nodegroup-name standard-workers --node-type t3.small --nodes 1 --nodes-min 1 --nodes-max 1 --region us-east-1 --managed --spot`
 
 ### Step 2. Let's point our kubectl to the aws eks blog-app-cluster
+
 `aws eks --region us-east-1 update-kubeconfig --name blog-app-cluster`
 
 ### step 3. We would create namespace for our production named prod
+
 `kubectl create namespace prod`
 
 ### step 4.Let's create secrets in our prod namespace
+
 `kubectl create secret generic blog-app-secrets-prod --from-env-file=.env -n prod`
+
 ### step 5. Helm Deployment to EKS
+
 We already pushed our image to dockerhub so we can always pull from there:
-Let's create a values.prod.yaml 
+Let's create a values.prod.yaml
+
 ```yaml
 replicaCount: 2
 image:
@@ -407,21 +448,27 @@ env:
   secrets:
     existingSecret: "blog-app-secrets-prod"
 ```
-*We would be using a loadbalancer because it less Works well for exposing apps to the internet, it's supported by all major cloud providers (EKS, GKE, AKS) and SSL termination possible. However, Every LoadBalancer costs money.Scaling many services this way is inefficient and expensive.No routing flexibility. In a proper production environment, it will be best to use an Ingeress Controller* 
+
+*We would be using a loadbalancer because it less Works well for exposing apps to the internet, it's supported by all major cloud providers (EKS, GKE, AKS) and SSL termination possible. However, Every LoadBalancer costs money.Scaling many services this way is inefficient and expensive.No routing flexibility. In a proper production environment, it will be best to use an Ingeress Controller*
 
 ### Step 6. Install with helm
+
 `helm install blog-app-prod ./blog-app-gitops-deployment/kubernetes/helm/blog-app -f values-prod.yaml`
+
 - Config kubectl to use eks cluster
 `aws eks --region us-east-1 update-kubeconfig --name blog-app-cluster`
 
 - Create secrets for our production namespace
+
 ```bash
 kubectl create secret generic blog-app-secrets-prod \
   --from-env-file=.env \
   -n prod
 
 ```
+
 - Deploy via helm to eks cluster
+
 ```bash
 helm upgrade --install blog-app-prod kubernetes/helm/blog-app \
   --namespace prod \
@@ -431,4 +478,3 @@ helm upgrade --install blog-app-prod kubernetes/helm/blog-app \
 ```
 
 ## Deployment Setup Using Kustomize
-

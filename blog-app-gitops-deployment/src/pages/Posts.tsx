@@ -38,11 +38,11 @@ const Posts = () => {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="What's on your mind?"
-            className="w-full p-3 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-[18px]"
+            className="w-full p-3 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500 text-[18px]"
           />
           <button
             onClick={handleAddPost}
-            className="mt-2 bg-blue-500 text-white px-5 py-2 rounded-md hover:bg-blue-600 transition-all"
+            className="mt-2 bg-slate-500 text-white px-5 py-2 rounded-md hover:bg-slate-600 transition-all"
           >
             Post
           </button>

@@ -61,7 +61,7 @@ const Home = () => {
     <div className="max-w-3xl mx-auto px-4 py-6">
       {/* ✅ Show Create Post Form for Signed-in Users */}
       {user && (
-        <div className="mb-6 bg-blue-800 shadow-md rounded-lg p-6 border border-gray-200">
+        <div className="mb-6 bg-slate-800 shadow-md rounded-lg p-6 border border-gray-200">
           <h2 className="text-xl font-semibold text-white mb-4">Create a Post</h2>
           <CreatePost />
         </div>
@@ -85,7 +85,7 @@ const Home = () => {
                     onChange={(e) => setEditedContent(e.target.value)}
                   />
                   <div className="flex gap-2 mt-2">
-                    <button onClick={() => handleSaveEdit(post.id)} className="bg-blue-500 text-white px-4 py-2 rounded">
+                    <button onClick={() => handleSaveEdit(post.id)} className="bg-slate-500 text-white px-4 py-2 rounded">
                       Save
                     </button>
                     <button onClick={() => setEditingPost(null)} className="bg-gray-500 text-white px-4 py-2 rounded">

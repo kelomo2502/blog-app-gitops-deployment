@@ -17,7 +17,7 @@ const Profile = () => {
   const [updating, setUpdating] = useState(false);
 
   if (loading || postLoading) {
-    return <p className="text-center text-blue-400">Loading...</p>;
+    return <p className="text-center text-slate-400">Loading...</p>;
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,8 +61,8 @@ const Profile = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-blue-100 text-white text-[18px]">
-      <div className="bg-blue-800 p-6 rounded-xl shadow-lg w-full max-w-md text-center">
+    <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-slate-100 text-white text-[18px]">
+      <div className="bg-slate-800 p-6 rounded-xl shadow-lg w-full max-w-md text-center">
         <h1 className="text-2xl font-bold mb-4">Profile</h1>
 
         {/* ✅ Profile Picture with Preview */}
@@ -78,16 +78,16 @@ const Profile = () => {
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full p-2 bg-blue-700 text-white border border-blue-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3"
+              className="w-full p-2 bg-slate-700 text-white border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500 mb-3"
             />
             <input
               type="file"
               onChange={handleFileChange}
-              className="w-full text-sm text-blue-300 bg-blue-700 p-2 border border-blue-600 rounded-md"
+              className="w-full text-sm text-slate-300 bg-slate-700 p-2 border border-slate-600 rounded-md"
             />
             <button
               onClick={handleSave}
-              className="mt-4 bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition-all"
+              className="mt-4 bg-slate-600 text-white px-5 py-2 rounded-md hover:bg-slate-700 transition-all"
               disabled={updating}
             >
               {updating ? "Updating..." : "Save Changes"}
@@ -96,11 +96,11 @@ const Profile = () => {
         ) : (
           <div>
             <p className="text-lg font-semibold">{displayName || "No Name"}</p>
-            <p className="text-blue-400">{user?.email}</p>
-            <p className="mt-2 text-blue-500">Number of Posts: {postCount ?? 0}</p>
+            <p className="text-slate-400">{user?.email}</p>
+            <p className="mt-2 text-slate-500">Number of Posts: {postCount ?? 0}</p>
             <button
               onClick={() => setEditing(true)}
-              className="mt-4 bg-blue-500 text-white px-5 py-2 rounded-md hover:bg-blue-600 transition-all"
+              className="mt-4 bg-slate-500 text-white px-5 py-2 rounded-md hover:bg-slate-600 transition-all"
             >
               Edit Profile
             </button>
