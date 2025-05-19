@@ -478,3 +478,5 @@ helm upgrade --install blog-app-prod kubernetes/helm/blog-app \
 ```
 
 ## Deployment Setup Using Kustomize
+
+We are also going to use kustomize
